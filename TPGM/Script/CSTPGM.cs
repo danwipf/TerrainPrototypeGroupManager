@@ -10,54 +10,44 @@ using UnityEditor;
 public static class CSTPGM {
 
     [System.Serializable]public struct list_GameObject {[SerializeField]public List<GameObject> m_GameObjects; }
-	[System.Serializable]public struct list_TreeInstances {[SerializeField]public List < TreeInstance > m_TreeInstances;}
-    [System.Serializable]public struct list_loaded{
-    [SerializeField] public GameObject m_GO;
-    [SerializeField] public List<TreeInstance> m_TI;
+	[System.Serializable]public struct list_TreeInstances {[SerializeField]public List < FIX_TreeInstance > m_TreeInstances;}
+    [System.Serializable] public struct FIX_TreeInstance
+    {
+        public Vector3 position;
+        public float widthScale;
+        public float heightScale;
+        public float rotation;
+        public Color32 color;
+        public Color32 lightmapColor;
+        public int prototypeIndex;
+        public FIX_TreeInstance(TreeInstance aTree)
+        {
+            position = aTree.position;
+            widthScale = aTree.widthScale;
+            heightScale = aTree.heightScale;
+            rotation = aTree.rotation;
+            color = aTree.color;
+            lightmapColor = aTree.lightmapColor;
+            prototypeIndex = aTree.prototypeIndex;
+        }
+        public static implicit operator TreeInstance (FIX_TreeInstance aTree)
+        {
+            TreeInstance inst = new TreeInstance();
+            inst.position = aTree.position;
+            inst.widthScale = aTree.widthScale;
+            inst.heightScale = aTree.heightScale;
+            inst.rotation = aTree.rotation;
+            inst.color = aTree.color;
+            inst.lightmapColor = aTree.lightmapColor;
+            inst.prototypeIndex = aTree.prototypeIndex;
+            return inst;
+        }
     }
+
+    
 
 
     //GUI Helpers
-    public static Texture2D MakeTex(int width, int height, Color col) {
-        Color[] pix = new Color[width * height]; 
-        for (int i = 0; i < pix.Length; ++i) {
-            pix[i] = col; 
-        }
-        Texture2D result = new Texture2D(width, height); 
-        result.SetPixels(pix); 
-        result.Apply(); 
-        return result; 
-    }
-    public static void GUI_LineVertical(Color color, float i_height = 1, float i_width = 50) {
-        Rect rect = EditorGUILayout.GetControlRect(false, i_height); 
-        rect.width = i_width; 
-        rect.height = i_height; 
-        EditorGUI.DrawRect(rect, color); 
-	}
-	public static void GUI_LineHorizontal(Color color, float i_height = 1) {
-		EditorGUILayout.Space(); 
-		Rect rect = EditorGUILayout.GetControlRect(false, i_height); 
-		rect.height = i_height; 
-		EditorGUI.DrawRect(rect, color); 
-		EditorGUILayout.Space(); 
-	}
-
-    // Functions
-    public static void ClearConsole () {
-        var assembly = Assembly.GetAssembly(typeof(SceneView)); 
-        var type = assembly.GetType("UnityEditor.LogEntries"); 
-        var method = type.GetMethod("Clear"); 
-        method.Invoke(new object(), null); 
-    }
-    public static void OnPlayMode(Color c){
-            GUIStyle g = new GUIStyle();
-            g.normal.textColor = c;
-            g.alignment = TextAnchor.MiddleCenter;
-            g.fontStyle = FontStyle.Bold;
-            EditorGUILayout.LabelField("Terrain Prototype Group Manager works only in Editor Mode",g);
-            EditorGUILayout.Space();
-            CSTPGM.GUI_LineHorizontal(Color.black,0.5f);
-    }
 
 
 

@@ -61,7 +61,7 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
             
         }
         if(EditorApplication.isPlaying){
-                CSTPGM.OnPlayMode(c_red);
+                OnPlayMode(c_red);
         }
     }
     
@@ -72,15 +72,15 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
         GUI.skin.box = GuistyleHeader;
         GuistyleHeader.fontSize = 16;
         GuistyleHeader.fontStyle = FontStyle.Bold;
-        GuistyleHeader.normal.background = CSTPGM.MakeTex( 2, 2,c_green);
+        GuistyleHeader.normal.background = MakeTex( 2, 2,c_green);
 
         EditorGUILayout.Space();
-        CSTPGM.GUI_LineHorizontal(Color.black,1);
+        GUI_LineHorizontal(Color.black,1);
         Rect HeaderRect = GUILayoutUtility.GetRect(0,30,GUILayout.MinWidth(310));
         GUI.Box(HeaderRect,"Terrain Prototypes Group Manager",GuistyleHeader);
-        CSTPGM.GUI_LineHorizontal(Color.black,1);
+        GUI_LineHorizontal(Color.black,1);
         EditorGUILayout.Space();
-        GuistyleHeader.normal.background = CSTPGM.MakeTex( 2, 2,Color.white);
+        GuistyleHeader.normal.background = MakeTex( 2, 2,Color.white);
         
 
     }
@@ -165,7 +165,7 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
         }
 
         if(GUILayout.Button("Instances Count",GUILayout.MinWidth(150))){
-            // CSTPGM.ClearConsole();
+            // ClearConsole();
             LogString = "TreeInstances Terrain: " + _TPGM._ted.treeInstances.Length;col = Color.black;
         }
         EditorGUILayout.EndHorizontal();
@@ -176,7 +176,7 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
     }
     public void DrawAllGroupList(){
         f1 = EditorGUILayout.Foldout(f1,"Prototype Groups");
-        CSTPGM.GUI_LineHorizontal(Color.black,0.5f);
+        GUI_LineHorizontal(Color.black,0.5f);
 
         if(f1)
         {
@@ -186,7 +186,7 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
             if(_TPGM._GroupNames.Count == 0) {
 
                 EditorGUILayout.Space();
-                CSTPGM.GUI_LineHorizontal(Color.black,1);
+                GUI_LineHorizontal(Color.black,1);
 
                 EditorGUILayout.LabelField("No Group created yet!");
 
@@ -201,7 +201,7 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
         GuistyleBoxNAME.fontStyle = FontStyle.Bold;
         GuistyleBoxNAME.fontSize = 12;
         GUI.skin.box = GuistyleBoxNAME;
-        GuistyleBoxNAME.normal.background = CSTPGM.MakeTex( 2, 2,c_orange);
+        GuistyleBoxNAME.normal.background = MakeTex( 2, 2,c_orange);
 
         Rect GroupRect = GUILayoutUtility.GetRect(0,20,GUILayout.ExpandWidth(true));
         GUI.Box(GroupRect,"Group Nr. "+ master + " ||| " + _TPGM._GroupNames[master],GuistyleBoxNAME);
@@ -265,13 +265,13 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
         g.normal.textColor = c;
         g.fontStyle = FontStyle.Italic;
 
-        CSTPGM.GUI_LineHorizontal(Color.black,0.5f);
+        GUI_LineHorizontal(Color.black,0.5f);
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField(name,GUILayout.MinWidth(150));
         EditorGUILayout.LabelField(message,g,GUILayout.MinWidth(150));
         GUILayout.FlexibleSpace();
         EditorGUILayout.EndHorizontal();
-        CSTPGM.GUI_LineHorizontal(Color.black,0.5f);
+        GUI_LineHorizontal(Color.black,0.5f);
     }
     void DrawDragAndDrop(int m){
 
@@ -280,7 +280,7 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
         GuistyleBoxDND.fontStyle = FontStyle.Italic; 
         GuistyleBoxDND.fontSize = 12;
         GUI.skin.box = GuistyleBoxDND;
-        GuistyleBoxDND.normal.background = CSTPGM.MakeTex( 2, 2, Color.white);
+        GuistyleBoxDND.normal.background = MakeTex( 2, 2, Color.white);
 
         Event evt = Event.current;
         Rect r = new Rect();
@@ -324,6 +324,47 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
         }
+        public static Texture2D MakeTex(int width, int height, Color col) {
+        Color[] pix = new Color[width * height]; 
+        for (int i = 0; i < pix.Length; ++i) {
+            pix[i] = col; 
+        }
+        Texture2D result = new Texture2D(width, height); 
+        result.SetPixels(pix); 
+        result.Apply(); 
+        return result; 
+    }
+    public static void GUI_LineVertical(Color color, float i_height = 1, float i_width = 50) {
+        Rect rect = EditorGUILayout.GetControlRect(false, i_height); 
+        rect.width = i_width; 
+        rect.height = i_height; 
+        EditorGUI.DrawRect(rect, color); 
+	}
+	public static void GUI_LineHorizontal(Color color, float i_height = 1) {
+		EditorGUILayout.Space(); 
+		Rect rect = EditorGUILayout.GetControlRect(false, i_height); 
+		rect.height = i_height; 
+		EditorGUI.DrawRect(rect, color); 
+		EditorGUILayout.Space(); 
+	}
+
+    // Functions
+    public static void ClearConsole () {
+        var assembly = Assembly.GetAssembly(typeof(SceneView)); 
+        var type = assembly.GetType("UnityEditor.LogEntries"); 
+        var method = type.GetMethod("Clear"); 
+        method.Invoke(new object(), null); 
+    }
+    public static void OnPlayMode(Color c){
+            GUIStyle g = new GUIStyle();
+            g.normal.textColor = c;
+            g.alignment = TextAnchor.MiddleCenter;
+            g.fontStyle = FontStyle.Bold;
+            EditorGUILayout.LabelField("Terrain Prototype Group Manager works only in Editor Mode",g);
+            EditorGUILayout.Space();
+            GUI_LineHorizontal(Color.black,0.5f);
+    }
+
 
 }
 
