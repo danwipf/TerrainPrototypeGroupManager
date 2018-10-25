@@ -13,14 +13,14 @@ public static class CSTPGM {
 	[System.Serializable]public struct list_TreeInstances {[SerializeField]public List < FIX_TreeInstance > m_TreeInstances;}
     [System.Serializable] public struct FIX_TreeInstance
     {
-        public Vector3 position;
-        public float widthScale;
-        public float heightScale;
-        public float rotation;
-        public Color32 color;
-        public Color32 lightmapColor;
-        public int prototypeIndex;
-        public FIX_TreeInstance(TreeInstance aTree)
+        [SerializeField] public Vector3 position;
+        [SerializeField] public float widthScale;
+        [SerializeField] public float heightScale;
+        [SerializeField] public float rotation;
+        [SerializeField] public Color32 color;
+        [SerializeField] public Color32 lightmapColor;
+        [SerializeField] public int prototypeIndex;
+        [SerializeField] public FIX_TreeInstance(TreeInstance aTree)
         {
             position = aTree.position;
             widthScale = aTree.widthScale;
@@ -30,7 +30,7 @@ public static class CSTPGM {
             lightmapColor = aTree.lightmapColor;
             prototypeIndex = aTree.prototypeIndex;
         }
-        public static implicit operator TreeInstance (FIX_TreeInstance aTree)
+        [SerializeField] public static implicit operator TreeInstance (FIX_TreeInstance aTree)
         {
             TreeInstance inst = new TreeInstance();
             inst.position = aTree.position;

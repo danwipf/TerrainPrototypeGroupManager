@@ -30,6 +30,9 @@ public class TerrainPrototypesGroupManager : MonoBehaviour {
 	CSTPGM.FIX_TreeInstance[] THREAD_TI = new CSTPGM.FIX_TreeInstance[0];
 	public float TimeLog;
 
+	// Painting Randomizer
+	public CSTPGM.FIX_TreeInstance[] RANDOMIZER_TI = new CSTPGM.FIX_TreeInstance[0];
+
 	void Reset(){
 		_ter = GetComponent<Terrain>();
 		_ted = _ter.terrainData;
@@ -42,7 +45,7 @@ public class TerrainPrototypesGroupManager : MonoBehaviour {
 		_ter = GetComponent<Terrain>();
 		_ted = _ter.terrainData;
 	}
-	void GetTI()
+	public void GetTI()
     {
         _TreeInstances = new CSTPGM.FIX_TreeInstance[_ted.treeInstances.Length];
         for(int i = 0; i < _ted.treeInstances.Length; i++)
@@ -50,7 +53,7 @@ public class TerrainPrototypesGroupManager : MonoBehaviour {
             _TreeInstances[i] = new CSTPGM.FIX_TreeInstance(_ted.treeInstances[i]);
         }
     }
-	void SetTI()
+	public void SetTI()
     {
         TreeInstance[] trees = new TreeInstance[_TreeInstances.Length];
         for(int i = 0; i < _TreeInstances.Length; i++)
@@ -61,10 +64,26 @@ public class TerrainPrototypesGroupManager : MonoBehaviour {
         _ted.treeInstances = trees;
 		_ted.RefreshPrototypes();
 		_ter.Flush();
-
     }
+	public void RandomizeTrees(){
+		
+		Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition );
+		RaycastHit hit;
+		if( Physics.Raycast( ray, out hit ) )
+		{
+			GetTI();
+			if(RANDOMIZER_TI.Length != _TreeInstances.Length){
+				for(int i = RANDOMIZER_TI.Length; i<_TreeInstances.Length; i++){
+					_TreeInstances[i].prototypeIndex = UnityEngine.Random.Range(0,_ted.treePrototypes.Length);
+				}
+			}
+			SetTI();
+			
+		}
+		
+		
+	}
 	public void CreateGroup(string Name){
-
         if(!_GroupNames.Contains(Name)){
             _GroupNames.Add(Name);
             bool b = false;
@@ -117,24 +136,26 @@ public class TerrainPrototypesGroupManager : MonoBehaviour {
         }
     }
 	public void FirstStart(){
-		GetTI();
+		
 		CreateGroup("Terrain Start Up Trees");
 		for(int i = 0; i<_GroupNames.Count;i++){
 			if(_GroupNames[i] == "Terrain Start Up Trees"){
 				for(int ii = 0; ii<_ted.treePrototypes.Length;ii++){
 					_GO_Groups[i].m_GameObjects.Add(_ted.treePrototypes[ii].prefab);
 				}
+				GetTI();
 				_TreeInstances = _TreeInstances.OrderBy(x => x.prototypeIndex).ToArray();
-				SetTI();
 				_TI_Groups[i].m_TreeInstances.AddRange(_TreeInstances);
 				_SelectGroupLoaded[i] = true;
 			}
 		}
+		
 
 	}
 	public void LoadGroup(){
-		GetTI();
+		
         ClearTerrain();
+		
 		_TP_ToLoad.Clear();
 		_TI_ToLoad.Clear();
 		_SelectGroupLoaded.Clear();
@@ -163,15 +184,18 @@ public class TerrainPrototypesGroupManager : MonoBehaviour {
                 c += _GO_Groups[i].m_GameObjects.Count;
             }
 		}
-		
+		GetTI();
 		_ted.treePrototypes = _TP_ToLoad.ToArray();
 		_TreeInstances = _TI_ToLoad.ToArray();
 		SetTI();
+	
     }
 	
     public void SECRETLoadGroup(){
-		GetTI();
+		
+		
         ClearTerrain();
+		
 		_TP_ToLoad.Clear();
 		_TI_ToLoad.Clear();
 
@@ -193,10 +217,12 @@ public class TerrainPrototypesGroupManager : MonoBehaviour {
                 c += _GO_Groups[i].m_GameObjects.Count;
             }
 		}
-		
+		GetTI();
 		_ted.treePrototypes = _TP_ToLoad.ToArray();
 		_TreeInstances = _TI_ToLoad.ToArray();
 		SetTI();
+		
+		
     }
 
 
@@ -210,7 +236,7 @@ public class TerrainPrototypesGroupManager : MonoBehaviour {
 	}
     
     public void SaveGroup(){
-		GetTI();
+		
 		TimeLog = Time.realtimeSinceStartup;				//Timecounter between Initialize and Loaded
 
 		GroupSave_LoadedList.Clear();
@@ -220,25 +246,23 @@ public class TerrainPrototypesGroupManager : MonoBehaviour {
 			}
 		}
 				//Check which Groups are Loaded and add the int to the List
+		GetTI();
 		for(int i = 0; i < _SelectGroupLoaded.Count; i++)
 		{
 			if(_SelectGroupLoaded[i])
 			{
 				GroupSave_LoadedList.Add(i);
-				_TI_Groups[ i ].m_TreeInstances.Capacity = _ted.treeInstances.Length;
+				_TI_Groups[ i ].m_TreeInstances.Capacity = _TreeInstances.Length;
 			}
 		}
-
-
-		_ted.treeInstances = _ted.treeInstances.OrderBy(i => i.prototypeIndex).ToArray();
 		
+		_TreeInstances = _TreeInstances.OrderBy(i => i.prototypeIndex).ToArray();
 		THREAD_TI = _TreeInstances;
 		SavingTPGM = new Thread(SaveGroupMain_OPTI);
 		SavingTPGM.Start();
 		TimeLog = Time.realtimeSinceStartup -TimeLog;
-
+		SetTI();
     }
-
 
 	void SaveGroupMain_OPTI()
 		
@@ -305,7 +329,6 @@ public class TerrainPrototypesGroupManager : MonoBehaviour {
                   }
               }
           }
-
 	public void ClearTerrain(){
 
 		if(_ted.treePrototypes.Length != 0 && _GO_Groups.Length != 0){
@@ -313,6 +336,7 @@ public class TerrainPrototypesGroupManager : MonoBehaviour {
 		SavingTPGM = null;
         }
 
+		GetTI();
         _TreeInstances = new CSTPGM.FIX_TreeInstance[0];
 		SetTI();
         _ted.treePrototypes = new TreePrototype[0];

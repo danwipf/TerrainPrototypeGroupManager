@@ -22,8 +22,8 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
     SerializedProperty s_GO_Groups;
 	Color c_green,c_orange,c_red, col = Color.black;
 	public GUIStyle GuistyleHeader, GuistyleBoxNAME, GuistyleBoxDND;
-	public bool locked,f0 = true,f1 = false;
-	string LogString,LockInspector = "Inspector Unlocked";
+	public bool locked,f0 = true,f1 = false, randomizer = false;
+	string LogString,RandLabel = "Tree Randomzier Off",LockInspector = "Lock Inspector Off";
 
     void OnEnable () {
         _TPGM = (TerrainPrototypesGroupManager)target;
@@ -41,7 +41,11 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
 
         }
     
-
+    public void OnSceneGUI(){
+        if(!_TPGM.FirstTime && randomizer){
+            Randomize();
+        }
+    }
     public override void OnInspectorGUI(){
         
         GUIHeader();
@@ -51,7 +55,7 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
         if(!_TPGM.FirstTime){
             if(!EditorApplication.isPlaying){
                 serializedObject.Update();
-
+                
                 GroupMananger();
                 DrawAllGroupList();
                 serializedObject.ApplyModifiedProperties();
@@ -90,89 +94,104 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
 
         f0 = EditorGUILayout.Foldout(f0,"Group Manager");
         if(f0){
-        EditorGUILayout.Space();
-        EditorGUILayout.BeginHorizontal();
-
-        EditorGUILayout.PropertyField(s_TempGroupName,new GUIContent(""),false,GUILayout.MinWidth(150));
-
-        if(GUILayout.Button("Create new Group",GUILayout.MinWidth(150))){
-            if(_TPGM._TempGroupName == "")                          {_TPGM._TempGroupName = null;}
-            if(_TPGM._GroupNames.Contains(_TPGM._TempGroupName))    {LogString = "Allready choose that Name!";col = c_red;}
-            if(_TPGM._TempGroupName == null)                        {LogString = "String can't be null!"; col = c_red;}
-            if(_TPGM._TempGroupName != null && !_TPGM._GroupNames.Contains(_TPGM._TempGroupName)){
-                _TPGM.CreateGroup(_TPGM._TempGroupName);
-                LogString = "Group Created!";col = c_green;
-            }
-        }
-
-        EditorGUILayout.EndHorizontal();
-
-        LogField("GROUPMANAGER LOG: ",LogString,col);
-
-        //Select Groups Bool
-        for(int i = 0; i< s_SelectGroup.arraySize;i++){
-            SerializedProperty s = s_SelectGroup.GetArrayElementAtIndex(i);
+            EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(_TPGM._GroupNames[i],GUILayout.MinWidth(150));
-            EditorGUILayout.PropertyField(s,new GUIContent(""),false);
-            EditorGUILayout.EndHorizontal();
-        }
-        //Select All Groups
-        EditorGUILayout.BeginHorizontal();
-        if(GUILayout.Button("Select all Groups", GUILayout.MinWidth(150))){
-            _TPGM._SelectAllGroups = !_TPGM._SelectAllGroups;
-            _TPGM.SelectAllGroups();
-        }
 
-        //Remove Groups
+            EditorGUILayout.PropertyField(s_TempGroupName,new GUIContent(""),false,GUILayout.MinWidth(150));
 
-        if(GUILayout.Button("Remove Selected Groups", GUILayout.MinWidth(150))){
-            
-            _TPGM.ClearTerrain();
-            _TPGM.RemoveGroups();
-            if(_TPGM._SelectGroupLoaded.Any(x => x)){
-                _TPGM.SECRETLoadGroup();
+            if(GUILayout.Button("Create new Group",GUILayout.MinWidth(150))){
+                if(_TPGM._TempGroupName == "")                          {_TPGM._TempGroupName = null;}
+                if(_TPGM._GroupNames.Contains(_TPGM._TempGroupName))    {LogString = "Allready choose that Name!";col = c_red;}
+                if(_TPGM._TempGroupName == null)                        {LogString = "String can't be null!"; col = c_red;}
+                if(_TPGM._TempGroupName != null && !_TPGM._GroupNames.Contains(_TPGM._TempGroupName)){
+                    _TPGM.CreateGroup(_TPGM._TempGroupName);
+                    LogString = "Group Created!";col = c_green;
                 }
-            if(_TPGM._ted.treePrototypes.Length != 0){_TPGM.SECRETLoadGroup();}
-            LogString = "Deleted Selected Groups!"; col = c_green;
+            }
+
+            EditorGUILayout.EndHorizontal();
+            LogField("GROUPMANAGER LOG: ",LogString,col);
+
+
+            //Toggle Select Groups List
+            for(int i = 0; i< s_SelectGroup.arraySize;i++){
+                SerializedProperty s = s_SelectGroup.GetArrayElementAtIndex(i);
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(_TPGM._GroupNames[i],GUILayout.MinWidth(150));
+                EditorGUILayout.PropertyField(s,new GUIContent(""),false);
+                EditorGUILayout.EndHorizontal();
+            }
             
+            //GUI BUTTONS
+            GUI_BUTTONS();
         }
-        EditorGUILayout.EndHorizontal();
-
-
-        // Load Groups
-        EditorGUILayout.BeginHorizontal();
-        if(GUILayout.Button("Load Groups", GUILayout.MinWidth(150))){
-            _TPGM.LoadGroup();
-            LogString = "Groups Loaded";col = c_green;
-        }
-
-
-        //Clear Terrain
-        if(GUILayout.Button("Clear Terrain", GUILayout.MinWidth(150))){
-            _TPGM.ClearTerrain();
-            LogString = "Terrain Cleared" + _TPGM.TimeLog; col = c_green;
-        }
-        EditorGUILayout.EndHorizontal();
-
-
-        //Unityrelated Functions
-        EditorGUILayout.BeginHorizontal();
-        if(GUILayout.Button(LockInspector,GUILayout.MinWidth(150))){
-            locked = !locked;
-            if(locked){     ActiveEditorTracker.sharedTracker.isLocked = true;  LockInspector = "Inspector Locked";}
-            if(!locked){    ActiveEditorTracker.sharedTracker.isLocked = false; LockInspector = "Inspector Unlocked";}
-        }
-
-        if(GUILayout.Button("Instances Count",GUILayout.MinWidth(150))){
-            // ClearConsole();
-            LogString = "TreeInstances Terrain: " + _TPGM._ted.treeInstances.Length;col = Color.black;
-        }
-        EditorGUILayout.EndHorizontal();
-        }
-
         GUILayout.Space(20);
-        //End of Group Manager
+    }
+    void GUI_BUTTONS(){
+            //Toggle Select All Groups Button
+            EditorGUILayout.BeginHorizontal();
+            if(GUILayout.Button("Select all Groups", GUILayout.MinWidth(150))){
+                _TPGM._SelectAllGroups = !_TPGM._SelectAllGroups;
+                _TPGM.SelectAllGroups();
+            }
+
+            //Remove Group Button
+            if(GUILayout.Button("Remove Selected Groups", GUILayout.MinWidth(150))){
+                _TPGM.ClearTerrain();
+                _TPGM.RemoveGroups();
+                if(_TPGM._SelectGroupLoaded.Any(x => x)){
+                    _TPGM.SECRETLoadGroup();
+                    }
+                if(_TPGM._ted.treePrototypes.Length != 0){_TPGM.SECRETLoadGroup();}
+                LogString = "Deleted Selected Groups!"; col = c_green;
+            }
+
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+
+            // Load Groups Button
+            if(GUILayout.Button("Load Groups", GUILayout.MinWidth(150))){
+                _TPGM.LoadGroup();
+                LogString = "Groups Loaded";col = c_green;
+            }
+
+            //Clear Terrain
+            if(GUILayout.Button("Clear Terrain", GUILayout.MinWidth(150))){
+                
+                _TPGM.ClearTerrain();
+                LogString = "Terrain Cleared in " + System.Math.Round(_TPGM.TimeLog,2) + " Seconds"; col = c_green;
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+
+            //Toggle Lock Inspector Button
+            if(GUILayout.Button(LockInspector,GUILayout.MinWidth(150))){
+                locked = !locked;
+                if(locked){     ActiveEditorTracker.sharedTracker.isLocked = true;  LockInspector = "Lock Inspector On";}
+                if(!locked){    ActiveEditorTracker.sharedTracker.isLocked = false; LockInspector = "Lock Inspector Off";}
+            }
+
+            //Toggle Randomize Paint Brush Button
+            if(GUILayout.Button(RandLabel,GUILayout.MinWidth(150))){
+                randomizer = !randomizer;
+                if(randomizer){
+                    RandLabel = "Tree Randomzier On";
+                }
+                if(!randomizer){
+                    RandLabel = "Tree Randomzier Off";
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+
+            //TreeInstance Counter Button
+            if(GUILayout.Button("Tree Instances Count",GUILayout.MinWidth(150))){            
+                LogString = "TreeInstances Terrain: " + _TPGM._TreeInstances.Length;col = Color.black;
+                }
+
+
+            EditorGUILayout.EndHorizontal();
+
     }
     public void DrawAllGroupList(){
         f1 = EditorGUILayout.Foldout(f1,"Prototype Groups");
@@ -334,28 +353,41 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
         result.Apply(); 
         return result; 
     }
-    public static void GUI_LineVertical(Color color, float i_height = 1, float i_width = 50) {
+    void Randomize(){
+        Event evt = Event.current;
+        if(evt.type == EventType.MouseDown && evt.button == 0){
+            
+            _TPGM.RANDOMIZER_TI = _TPGM._TreeInstances;
+        }
+        if(evt.type == EventType.MouseUp && evt.button == 0 || evt.type == EventType.MouseDrag && evt.button == 0 ){
+            _TPGM.RandomizeTrees();
+            
+        }
+    }
+
+
+    //GUI Helpers
+
+    void GUI_LineVertical(Color color, float i_height = 1, float i_width = 50) {
         Rect rect = EditorGUILayout.GetControlRect(false, i_height); 
         rect.width = i_width; 
         rect.height = i_height; 
         EditorGUI.DrawRect(rect, color); 
 	}
-	public static void GUI_LineHorizontal(Color color, float i_height = 1) {
+	void GUI_LineHorizontal(Color color, float i_height = 1) {
 		EditorGUILayout.Space(); 
 		Rect rect = EditorGUILayout.GetControlRect(false, i_height); 
 		rect.height = i_height; 
 		EditorGUI.DrawRect(rect, color); 
 		EditorGUILayout.Space(); 
 	}
-
-    // Functions
-    public static void ClearConsole () {
+    void ClearConsole () {
         var assembly = Assembly.GetAssembly(typeof(SceneView)); 
         var type = assembly.GetType("UnityEditor.LogEntries"); 
         var method = type.GetMethod("Clear"); 
         method.Invoke(new object(), null); 
     }
-    public static void OnPlayMode(Color c){
+    void OnPlayMode(Color c){
             GUIStyle g = new GUIStyle();
             g.normal.textColor = c;
             g.alignment = TextAnchor.MiddleCenter;
