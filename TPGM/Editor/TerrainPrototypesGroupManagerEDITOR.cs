@@ -121,7 +121,7 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
                 EditorGUILayout.PropertyField(s,new GUIContent(""),false);
                 EditorGUILayout.EndHorizontal();
             }
-            
+
             //GUI BUTTONS
             GUI_BUTTONS();
         }
@@ -156,7 +156,7 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
             }
 
             //Clear Terrain
-            if(GUILayout.Button("Clear Terrain", GUILayout.MinWidth(150))){
+            if(GUILayout.Button("Unload Terrain", GUILayout.MinWidth(150))){
                 
                 _TPGM.ClearTerrain();
                 LogString = "Terrain Cleared in " + System.Math.Round(_TPGM.TimeLog,2) + " Seconds"; col = c_green;
@@ -355,13 +355,13 @@ public class TerrainPrototypesGroupManagerEDITOR : Editor {
     }
     void Randomize(){
         Event evt = Event.current;
-        if(evt.type == EventType.MouseDown && evt.button == 0){
-            
-            _TPGM.RANDOMIZER_TI = _TPGM._TreeInstances;
-        }
-        if(evt.type == EventType.MouseUp && evt.button == 0 || evt.type == EventType.MouseDrag && evt.button == 0 ){
-            _TPGM.RandomizeTrees();
-            
+        if(!evt.alt && !evt.shift){
+            if(evt.type == EventType.MouseDown && evt.button == 0){
+                _TPGM.RANDOMIZER_TI = _TPGM._TreeInstances;
+            }
+            if(evt.type == EventType.MouseUp && evt.button == 0 || evt.type == EventType.MouseDrag && evt.button == 0 ){
+                _TPGM.RandomizeTrees();
+            }
         }
     }
 
